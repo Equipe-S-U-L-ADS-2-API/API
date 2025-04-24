@@ -65,54 +65,6 @@ para criar software, a interface de chatbot não é a melhor para este tipo de t
 
 <br>
 
-
-# Backlog do Produto - Geral
-
-🟥 - Alta <br>
-🟨 - Média <br>
-🟩 - Baixa <br>
-
-| Prioridade | User Stories | Estimativa | Sprint |
-| ---------- | ------------ | ---------- | ------ |
-| 🟥 | Como desenvolvedor, quero uma interface de texto simples onde eu possa digitar código Java. | 3 | 1 |
-| 🟥 | Como desenvolvedor, quero que a IA analise os resultados dos testes unitários e mostre quais testes foram aprovados ou não. | 8 | 1 |
-| 🟥 | Como desenvolvedor, quero poder criar uma interface onde mostre o teste unitário simples do código que escrevi. | 3 | 1 |
-| 🟥 | Como desenvolvedor, quero um botão para executar os testes unitários. | 3 | 1 |
-| 🟨 | Como desenvolvedor, quero uma tela de orientações sobre o uso do projeto, para que os usuários possam entender seu funcionamento de forma clara e eficiente. | 3 | 1 |
-| 🟨 | Como desenvolvedor, quero melhorar os prompts já existentes, para que as respostas sejam mais precisas e úteis. | 3 | 2 |
-| 🟥 | Como usuário do sistema, quero que o sistema verifique meu código e recomende mudanças, para que eu possa melhorar a qualidade do código. | 8 | 2 |
-| 🟥 | Como usuário, quero poder fazer upload de um arquivo .txt ou .java, para que o conteúdo seja exibido automaticamente no prompt. | 5 | 2 |
-| 🟩 | Como usuário, quero uma interface mais intuitiva e visualmente agradável, para que a experiencia de uso seja mais fluida. | 3 | 2 |
-| 🟩 | Como usuário, quero que a tela de resposta tenha melhor formatação e clareza, para que eu entenda melhor a resposta fornecida. | 3 | 2 |
-| 🟨 | Como usuário, quero que o código exibido tenha realce de sintaxe, para que a leitura e compreensão sejam mais claras. | 5 | 2 |
-| 🟨 | Como usuário, quero que a tela ajuda seja mais completa e acessível, para que eu entenda facilmente como usar todas as funcionalidades. | 5 | 2 |
-| 🟥 | Como desenvolvedor, quero definir o modelo conceitual e lógico do banco de dados, para planejar de forma eficiente o armazenamento das informações. | 3 | 2 |
-| 🟥 | Como desenvolvedor, quero integrar o banco de dados ao sistema mesmo que de forma básica, para já começar a testar a persistência de dados. | 5 | 2 |
-| 🟨 | Como usuário, quero acessar o histórico de prompts enviados e suas respostas em uma tela própria, para consultar mais rapidamente interações passadas de forma clara e visual. | 8 | 2 |
-| 🟨 | Como desenvolvedor, Como cliente, eu quero um protótipo da interface principal, para que eu possa visualizar e validar antes do desenvolvimento. | 3 | 2 |
-| 🟨 | Como desenvolvedor, quero que a IA sugira refatorações de código, para melhorar a legibilidade e o desempenho do meu código. | 13 | 3 |
-| 🟥 | Como desenvolvedor, quero um modelo físico do banco de dados, para que eu possa implementar as tabelas, índices, chaves e outras estruturas de armazenamento no sistema de banco de dados, garantindo eficiência e desempenho para o uso real (em MySQL). | 8 | 3 |
-| 🟩 | Como desenvolvedor, quero uma interface de usuário mais intuitiva e personalizável. | 5 | 3 |
-| 🟩 | Como desenvolvedor, quero que a IDE tenha um desempenho otimizado para execução de código e testes mais rápidos. | 8 | 3 |
-
----
-
-# Backlog do Produto - Sprint 1 (CONCLUÍDA!)
-
-🟥 - Alta <br>
-🟨 - Média <br>
-🟩 - Baixa <br>
-
-| Prioridade | User Stories | Estimativa | Sprint |
-| ---------- | ------------ | ---------- | ------ |
-| 🟥 | Como desenvolvedor, quero uma interface de texto simples onde eu possa digitar código Java. | 3 | 1 |
-| 🟥 | Como desenvolvedor, quero que a IA analise os resultados dos testes unitários e mostre quais testes foram aprovados ou não. | 8 | 1 |
-| 🟥 | Como desenvolvedor, quero poder criar uma interface onde mostre o teste unitário simples do código que escrevi. | 3 | 1 |
-| 🟥 | Como desenvolvedor, quero um botão para executar os testes unitários. | 3 | 1 |
-| 🟨 | Como desenvolvedor, quero uma tela de orientações sobre o uso do projeto, para que os usuários possam entender seu funcionamento de forma clara e eficiente. | 3 | 1 |
-
-<br>
-
 # Backlog do Produto - Sprint 2 (EM ANDAMENTO!)
 
 🟥 - Alta <br>
