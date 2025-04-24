@@ -20,6 +20,4 @@
 | 🟨 | Como usuário, quero acessar o histórico de prompts enviados e suas respostas em uma tela própria, para consultar mais rapidamente interações passadas de forma clara e visual. | 8 | 2 |
 | 🟨 | Como desenvolvedor, Como cliente, eu quero um protótipo da interface principal, para que eu possa visualizar e validar antes do desenvolvimento. | 3 | 2 |
 
-
-
 <br>
