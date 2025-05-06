@@ -1,6 +1,6 @@
 # (API) Equipe S.U.L 💻💾
 
-# Backlog do Produto - Sprint 2 (CONCLUIDA!)
+# Backlog do Produto - Sprint 2 (CONCLUÍDA!)
 
 🟥 - Alta <br>
 🟨 - Média <br>
