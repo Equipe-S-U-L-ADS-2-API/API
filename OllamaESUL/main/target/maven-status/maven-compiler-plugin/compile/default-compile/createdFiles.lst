@@ -1,4 +1,5 @@
 GUI\TelaPrincipalEsul$1.class
+GUI\TelaHistTeste$5.class
 GUI\TelaPrincipalEsul$6.class
 GUI\Ajuda$3.class
 GUI\TelaHistTeste.class
@@ -10,9 +11,11 @@ GUI\TelaHistMelhoria$3.class
 GUI\TelaHistTeste$2.class
 GUI\TelaResposta.class
 ferramentas\GeradorDeTesteJava.class
+GUI\TelaHistTeste$4.class
 esulDAO\BD.class
 GUI\TelaPrincipalEsul$7.class
 GUI\TelaPrincipalEsul.class
+GUI\TelaHistTeste$SingleLineCellRenderer.class
 GUI\TelaPrincipalEsul$2.class
 com\mycompany\main\Main.class
 GUI\TelaResposta$1.class
@@ -22,8 +25,10 @@ GUI\TelaHistTeste$1.class
 GUI\TelaPrincipalEsul$9.class
 GUI\TelaHistMelhoria$1.class
 ferramentas\MelhoradorDeCodigo.class
+GUI\TelaHistMelhoria$SingleLineCellRenderer.class
 GUI\Ajuda$1.class
 GUI\TelaResposta$2.class
 GUI\TelaHistMelhoria.class
+GUI\TelaHistMelhoria$4.class
 GUI\TelaHistTeste$3.class
 GUI\TelaPrincipalEsul$4.class

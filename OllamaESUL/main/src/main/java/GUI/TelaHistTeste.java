@@ -4,10 +4,19 @@
  */
 package GUI;
 
+import java.awt.Component;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.table.TableCellRenderer;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import javax.swing.JButton;
 
 /**
  *
@@ -18,41 +27,110 @@ public class TelaHistTeste extends javax.swing.JFrame {
     /**
      * Creates new form TelaHistTeste
      */
-    private void carregarDados() {
-    setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-    DefaultTableModel modelo = (DefaultTableModel) tabelaHistoricoT.getModel();
-    modelo.setRowCount(0); // Limpa os dados atuais
-
-    try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/esulbd", "root", "fatec");
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT * FROM testes")) {
-
-        while (rs.next()) {
-            int id = rs.getInt("id");
-            Timestamp dataHora = rs.getTimestamp("data_hora");
-            String input = rs.getString("inp_teste");
-            String output = rs.getString("out_teste");
-
-            modelo.addRow(new Object[]{id, dataHora, input, output});
-        }
-        
-
-    } catch (SQLException e) {
-        JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage());
+    
+   class SingleLineCellRenderer extends JTextArea implements TableCellRenderer {
+    public SingleLineCellRenderer() {
+        setLineWrap(false);  // Desabilitar a quebra de linha
+        setWrapStyleWord(true);  // Manter o estilo de palavra, mas sem quebrar
+        setOpaque(true);
+        setEditable(false);  // Impede edição do texto diretamente na célula
     }
-    
-    
-}    
-    public TelaHistTeste() {
-     initComponents();
-     setLocationRelativeTo(null);
-      // Centralizar ID e DataHora
-     javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
-     centerRenderer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-     tabelaHistoricoT.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // ID
-     tabelaHistoricoT.getColumnModel().getColumn(1).setCellRenderer(centerRenderer); // DataHora
-     carregarDados();
+
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+                                                    boolean isSelected, boolean hasFocus,
+                                                    int row, int column) {
+        setText(value == null ? "" : value.toString());
+
+        if (isSelected) {
+            setBackground(table.getSelectionBackground());
+            setForeground(table.getSelectionForeground());
+        } else {
+            setBackground(table.getBackground());
+            setForeground(table.getForeground());
+        }
+
+        setFont(table.getFont());
+
+        // Ajustar a altura da linha, mas sem múltiplas linhas
+        int lineHeight = getFontMetrics(getFont()).getHeight();
+        table.setRowHeight(row, lineHeight + 5); // Pequeno espaço adicional para a altura
+
+        return this;
+    }
 }
+
+    private void carregarDados() {
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        DefaultTableModel modelo = (DefaultTableModel) tabelaHistoricoT.getModel();
+        modelo.setRowCount(0); // Limpa os dados atuais
+
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/esulbd", "root", "fatec");
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM testes")) {
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                Timestamp dataHora = rs.getTimestamp("data_hora");
+                String input = rs.getString("inp_teste");
+                String output = rs.getString("out_teste");
+
+                modelo.addRow(new Object[]{id, dataHora, input, output});
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Erro ao carregar dados: " + e.getMessage());
+        }
+    }
+
+ public TelaHistTeste() {
+        initComponents();
+        setLocationRelativeTo(null);
+
+        javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        tabelaHistoricoT.getColumnModel().getColumn(0).setCellRenderer(centerRenderer); // ID
+        tabelaHistoricoT.getColumnModel().getColumn(1).setCellRenderer(centerRenderer); // DataHora
+
+        // Usar SingleLineCellRenderer para Entrada e Saída
+        tabelaHistoricoT.getColumnModel().getColumn(2).setCellRenderer(new SingleLineCellRenderer()); // Entrada Usuário
+        tabelaHistoricoT.getColumnModel().getColumn(3).setCellRenderer(new SingleLineCellRenderer()); // Saída IA
+
+        // Adicionar MouseListener para abrir nova janela com o conteúdo completo
+        tabelaHistoricoT.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                int row = tabelaHistoricoT.rowAtPoint(e.getPoint());
+                int column = tabelaHistoricoT.columnAtPoint(e.getPoint());
+
+                // Abrir nova tela para Entrada Usuário ou Saída IA
+                if (column == 2 || column == 3) {
+                    String content = tabelaHistoricoT.getValueAt(row, column).toString();
+                    openDetailWindow(content);
+                }
+            }
+        });
+
+        carregarDados();
+    }
+
+    private void openDetailWindow(String content) {
+        JFrame detailFrame = new JFrame("Detalhes do Teste");
+        JTextArea textArea = new JTextArea(content);
+        textArea.setEditable(false);  // Impede edição
+        textArea.setWrapStyleWord(true);
+        textArea.setLineWrap(true);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        detailFrame.add(scrollPane);
+
+        // Botão de Fechar
+        JButton closeButton = new JButton("Fechar");
+        closeButton.addActionListener(evt -> detailFrame.dispose());
+        detailFrame.add(closeButton, "South");
+
+        detailFrame.setSize(500, 400);  // Tamanho da janela
+        detailFrame.setLocationRelativeTo(this);  // Centraliza na tela
+        detailFrame.setVisible(true);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -81,7 +159,15 @@ public class TelaHistTeste extends javax.swing.JFrame {
             new String [] {
                 "ID", "Data e Hora", "Entrada Usuário", "Saída IA"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         tabelaHistoricoT.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         jScrollPane1.setViewportView(tabelaHistoricoT);
 

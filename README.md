@@ -23,9 +23,9 @@ Sprint            |   Início   |    Fim     | Status  |
 |Kick Off         | 24/02/2025 | 28/02/2025 | concluído |
 |01               | 10/03/2025 | 30/03/2025 | concluído |
 |Sprint Review 01 | 31/03/2025 | 04/04/2025 | concluído |
-|02               | 07/04/2025 | 27/04/2025 | concluído |
-|Sprint Review 02 | 28/04/2025 | 02/05/2025 | concluído |
-|03               | 05/05/2025 | 25/05/2025 | em andamento |
+|02               | 07/04/2025 | 27/04/2025 | em andamento |
+|Sprint Review 02 | 28/04/2025 | 02/05/2025 | a fazer |
+|03               | 05/05/2025 | 25/05/2025 | a fazer |
 |Sprint Review 03 | 26/05/2025 | 28/05/2025 | a fazer |
 |Feira de Soluções| 29/05/2025 | 29/05/2025 | a fazer |
 
@@ -58,7 +58,7 @@ para criar software, a interface de chatbot não é a melhor para este tipo de t
         <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/java/java-original-wordmark.svg" width="80px" />  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/git/git-original.svg" width="80px" /> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/github/github-original.svg" width="80px" />
       </li>
       <li>
-        <img src="https://registry.npmmirror.com/@lobehub/icons-static-png/1.45.0/files/light/ollama.png" width="80px" /> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg" width="80px"> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original-wordmark.svg" width="80px" /> <img src="https://images.sftcdn.net/images/t_app-icon-m/p/8a766988-96d4-11e6-b61a-00163ec9f5fa/3944872222/netbeans-ide-4037776803.png" width="80px" />
+        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/vscode/vscode-original.svg" width="80px" /> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/figma/figma-original.svg" width="80px"> <img src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/jira/jira-original-wordmark.svg" width="80px" />
       </li>
    </ul>
 </p>
@@ -90,11 +90,10 @@ para criar software, a interface de chatbot não é a melhor para este tipo de t
 | 🟥 | Como desenvolvedor, quero integrar o banco de dados ao sistema mesmo que de forma básica, para já começar a testar a persistência de dados. | 5 | 2 |
 | 🟨 | Como usuário, quero acessar o histórico de prompts enviados e suas respostas em uma tela própria, para consultar mais rapidamente interações passadas de forma clara e visual. | 8 | 2 |
 | 🟨 | Como desenvolvedor, Como cliente, eu quero um protótipo da interface principal, para que eu possa visualizar e validar antes do desenvolvimento. | 3 | 2 |
-| 🟥 | Como usuário, quero janelas separadas para o código principal, testes e melhorias, para organizar melhor o que estou desenvolvendo. | 13 | 3 |
-| 🟨 | Como usuário, quero ver a saída da execução do código em um terminal na parte inferior da IDE, ativado por um botão ou atalho Run. | 6 | 3 |
-| 🟥 | Como usuário, quero uma barra lateral com atalhos como modo escuro/claro, para ter acesso rápido a funcionalidades da IDE. | 6 | 3 |
-| 🟨 | Como usuário, quero uma interface visual do banco de dados com cores e botões estilizados, combinando com o visual da IDE. | 10 | 3 |
-| 🟨 | Como usuário, quero acessar instruções da IDE tanto online (site) quanto offline (PDF), para entender melhor como usar os recursos. | 12 | 3 |
+| 🟨 | Como desenvolvedor, quero que a IA sugira refatorações de código, para melhorar a legibilidade e o desempenho do meu código. | 13 | 3 |
+| 🟥 | Como desenvolvedor, quero um modelo físico do banco de dados, para que eu possa implementar as tabelas, índices, chaves e outras estruturas de armazenamento no sistema de banco de dados, garantindo eficiência e desempenho para o uso real (em MySQL). | 8 | 3 |
+| 🟩 | Como desenvolvedor, quero uma interface de usuário mais intuitiva e personalizável. | 5 | 3 |
+| 🟩 | Como desenvolvedor, quero que a IDE tenha um desempenho otimizado para execução de código e testes mais rápidos. | 8 | 3 |
 
 ---
 
