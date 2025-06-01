@@ -79,12 +79,49 @@ public class GeradorDeTesteJava {
         You are an expert in Java testing. Generate complete unit test code for the following Java code.
         
         Requirements:
-        1. Generate actual test code, not instructions
-        2. Include all necessary test cases to verify the functionality
-        3. Test both normal cases and edge cases
-        4. Include assertions to verify expected outcomes
-        5. Add comments explaining what each test verifies
-        6. Follow testing best practices
+        1. Use JUnit 5 exclusively:
+           - Import and use @Test from org.junit.jupiter.api.Test
+           - DO NOT use JUnit 4 annotations or imports
+           - Use modern JUnit 5 assertions and features
+           - IMPORTANT: Never use @Test(expected=...) as it's JUnit 4 style
+        
+        2. For exception testing (CRITICAL):
+           - ALWAYS use assertThrows() for exception tests
+           - NEVER use @Test(expected=...)
+           - Example of correct exception testing:
+             ```java
+             @Test
+             void testDividirPorZero() {
+                 // Arrange
+                 int a = 10, b = 0;
+                 Calculadora calc = new Calculadora();
+                 
+                 // Act & Assert
+                 assertThrows(ArithmeticException.class, () -> {
+                     calc.dividir(a, b);
+                 });
+             }
+             ```
+        
+        3. Test Structure:
+           - Follow AAA pattern (Arrange, Act, Assert)
+           - Use descriptive test names that explain the scenario
+           - Include test cases for both success and failure scenarios
+           - Test edge cases and boundary conditions
+           - Document test cases with clear comments
+        
+        4. Before writing each test case:
+           - Analyze the implementation logic carefully
+           - Calculate the expected values manually
+           - Double-check all mathematical operations
+           - Verify that the expected values match the actual implementation
+           - If in doubt, test the implementation manually first
+        
+        5. For each test case:
+           - Document the input values
+           - Show the calculation steps
+           - Explain why the expected value is correct
+           - Include a comment with the manual calculation
         
         Format your response as:
         ```java

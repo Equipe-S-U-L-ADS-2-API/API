@@ -40,11 +40,20 @@ import javax.swing.InputMap;
 import javax.swing.KeyStroke;      
 import java.awt.event.ActionEvent; 
 import javax.swing.JComponent;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JTree;
+import javax.swing.tree.TreeModel;
+import javax.swing.tree.TreePath;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.nio.file.Files;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rsyntaxtextarea.Theme;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import java.nio.file.*;
 
 /**
  *
@@ -57,6 +66,7 @@ public class TelaPrincipalEsul extends javax.swing.JFrame implements ferramentas
     private final javax.swing.JTabbedPane painelCodigo;
     private RSyntaxTextArea textAreaResultado;
     private RSyntaxTextArea textAreaCodigo; // Nova área de texto para código
+    private FileWatcher fileWatcher;
 
     public TelaPrincipalEsul() {
         getRootPane().putClientProperty("JRootPane.titleBarBackground", new Color(16,22,20));
@@ -112,53 +122,118 @@ public class TelaPrincipalEsul extends javax.swing.JFrame implements ferramentas
         scrollPaneCodigo.setViewportView(textAreaCodigo);
         
         jTreeArquivos.setCellRenderer(new FileTreeCellRenderer());
-jTreeArquivos.addTreeSelectionListener(new TreeSelectionListener() {
-    @Override
-    public void valueChanged(TreeSelectionEvent e) {
-        DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) jTreeArquivos.getLastSelectedPathComponent();
-
-        if (selectedNode == null) {
-            return;
-        }
-
-        Object userObject = selectedNode.getUserObject();
-
-        if (userObject instanceof File) {
-            File file = (File) userObject;
-
-            if (file.isFile()) {
-                if (openFilesMap.containsKey(file)) {
-                    RSyntaxTextArea existingTextArea = openFilesMap.get(file);
-                    for (int i = 0; i < jPanel3.getTabCount(); i++) { // Use jPanel3 diretamente
-                        JPanel tabContentPanel = (JPanel) jPanel3.getComponentAt(i);
-                        RTextScrollPane scrollPane = (RTextScrollPane) tabContentPanel.getComponent(0);
-                        if (scrollPane.getViewport().getView() == existingTextArea) {
-                            jPanel3.setSelectedIndex(i); // Use jPanel3 diretamente
-                            break;
-                        }
+        
+        // Adicionar menu de contexto à JTree
+        JPopupMenu treePopupMenu = new JPopupMenu();
+        JMenuItem closeItem = new JMenuItem("Fechar");
+        closeItem.addActionListener(e -> {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) jTreeArquivos.getLastSelectedPathComponent();
+            if (node != null && node.getUserObject() instanceof File) {
+                File file = (File) node.getUserObject();
+                if (file.isFile() && file.getName().endsWith(".java") || file.isDirectory()) {
+                    // Remover da JTree
+                    DefaultTreeModel model = (DefaultTreeModel) jTreeArquivos.getModel();
+                    model.removeNodeFromParent(node);
+                    
+                    // Se for um arquivo, remover da lista de arquivos abertos
+                    if (file.isFile()) {
+                        openFilesMap.remove(file);
                     }
-                } else {
-                    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-                        RSyntaxTextArea newTextArea = createNewRSyntaxTextArea();
-                        newTextArea.setText("");
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            newTextArea.append(line + "\n");
+                    
+                    // Remover arquivos compilados
+                    if (file.isFile()) {
+                        String className = file.getName().replace(".java", "");
+                        String packageName = extractPackageNameFromFile(file);
+                        String fullClassName = packageName.isEmpty() ? className : packageName + "." + className;
+                        File classFile = new File("bin", fullClassName.replace('.', File.separatorChar) + ".class");
+                        if (classFile.exists()) {
+                            classFile.delete();
                         }
-                        newTextArea.setCaretPosition(0);
-
-                        addFileTab(file, newTextArea);
-
-                    } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(TelaPrincipalEsul.this,
-                                "Erro ao ler o arquivo: " + ex.getMessage(),
-                                "Erro de Leitura de Arquivo", JOptionPane.ERROR_MESSAGE);
+                    } else if (file.isDirectory()) {
+                        removeCompiledFiles(file);
                     }
                 }
             }
-        }
-    }
-});
+        });
+        treePopupMenu.add(closeItem);
+        
+        jTreeArquivos.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                showPopupMenu(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                showPopupMenu(e);
+            }
+
+            private void showPopupMenu(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    int row = jTreeArquivos.getClosestRowForLocation(e.getX(), e.getY());
+                    if (row != -1) {
+                        jTreeArquivos.setSelectionRow(row);
+                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) 
+                            jTreeArquivos.getLastSelectedPathComponent();
+                        
+                        if (node != null && node.getUserObject() instanceof File) {
+                            File file = (File) node.getUserObject();
+                            if (file.isFile() && file.getName().endsWith(".java") || file.isDirectory()) {
+                                treePopupMenu.show(e.getComponent(), e.getX(), e.getY());
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        jTreeArquivos.addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
+            public void valueChanged(TreeSelectionEvent e) {
+                DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) jTreeArquivos.getLastSelectedPathComponent();
+
+                if (selectedNode == null) {
+                    return;
+                }
+
+                Object userObject = selectedNode.getUserObject();
+
+                if (userObject instanceof File) {
+                    File file = (File) userObject;
+
+                    if (file.isFile()) {
+                        if (openFilesMap.containsKey(file)) {
+                            RSyntaxTextArea existingTextArea = openFilesMap.get(file);
+                            for (int i = 0; i < jPanel3.getTabCount(); i++) { // Use jPanel3 diretamente
+                                JPanel tabContentPanel = (JPanel) jPanel3.getComponentAt(i);
+                                RTextScrollPane scrollPane = (RTextScrollPane) tabContentPanel.getComponent(0);
+                                if (scrollPane.getViewport().getView() == existingTextArea) {
+                                    jPanel3.setSelectedIndex(i); // Use jPanel3 diretamente
+                                    break;
+                                }
+                            }
+                        } else {
+                            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+                                RSyntaxTextArea newTextArea = createNewRSyntaxTextArea();
+                                newTextArea.setText("");
+                                String line;
+                                while ((line = reader.readLine()) != null) {
+                                    newTextArea.append(line + "\n");
+                                }
+                                newTextArea.setCaretPosition(0);
+
+                                addFileTab(file, newTextArea);
+
+                            } catch (IOException ex) {
+                                JOptionPane.showMessageDialog(TelaPrincipalEsul.this,
+                                        "Erro ao ler o arquivo: " + ex.getMessage(),
+                                        "Erro de Leitura de Arquivo", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }
+                    }
+                }
+            }
+        });
         
         // Configurar atalhos de teclado para a janela principal
         InputMap inputMap = getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
@@ -921,7 +996,7 @@ private File getSelectedFile() {
     private void jButton7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton7ActionPerformed
 
         JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Apenas diretórios
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Selecionar Diretório do Projeto");
 
         int result = fileChooser.showOpenDialog(TelaPrincipalEsul.this);
@@ -934,12 +1009,10 @@ private File getSelectedFile() {
             jPanel1.revalidate();
             jPanel1.repaint();
             File selectedDirectory = fileChooser.getSelectedFile();
-            
 
             DefaultTreeModel treeModel = (DefaultTreeModel) jTreeArquivos.getModel();
             DefaultMutableTreeNode rootNode;
 
-            // Se o modelo da árvore não existir ou for o nó padrão vazio, inicialize-o
             if (treeModel == null || jTreeArquivos.getModel().getRoot() == null || 
                 ((DefaultMutableTreeNode)jTreeArquivos.getModel().getRoot()).getUserObject().equals("root") && 
                 ((DefaultMutableTreeNode)jTreeArquivos.getModel().getRoot()).getChildCount() == 0) {
@@ -949,22 +1022,33 @@ private File getSelectedFile() {
                 jTreeArquivos.setModel(treeModel);
             } else {
                 rootNode = (DefaultMutableTreeNode) treeModel.getRoot();
-                // Se a raiz for apenas "root", e não "Arquivos do Projeto", podemos mudar
                 if (rootNode.getUserObject().equals("root") && rootNode.getChildCount() == 0) {
                      rootNode.setUserObject("Arquivos do Projeto");
                 }
             }
 
-            // Adiciona o diretório selecionado como um novo nó raiz ou filho da raiz existente
             DefaultMutableTreeNode projectNode = new DefaultMutableTreeNode(selectedDirectory);
             treeModel.insertNodeInto(projectNode, rootNode, rootNode.getChildCount());
             
-            // Carrega recursivamente os arquivos e subdiretórios no novo nó
             loadDirectoryToTree(selectedDirectory, projectNode);
 
-            // Expande o nó do projeto e rola para torná-lo visível
             jTreeArquivos.expandPath(new TreePath(projectNode.getPath()));
             jTreeArquivos.scrollPathToVisible(new TreePath(projectNode.getPath()));
+
+            // Iniciar o FileWatcher para o novo projeto
+            try {
+                if (fileWatcher != null) {
+                    fileWatcher.stopWatching();
+                }
+                fileWatcher = new FileWatcher(jTreeArquivos);
+                fileWatcher.startWatching();
+            } catch (IOException e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, 
+                    "Erro ao iniciar monitoramento de arquivos: " + e.getMessage(),
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }//GEN-LAST:event_jButton7ActionPerformed
 
@@ -1368,4 +1452,49 @@ private DefaultMutableTreeNode findNode(DefaultMutableTreeNode root, File target
 
     return null; // Não encontrou o nó neste ramo
 }
+
+    @Override
+    public void dispose() {
+        if (fileWatcher != null) {
+            fileWatcher.stopWatching();
+        }
+        super.dispose();
+    }
+
+    private String extractPackageNameFromFile(File file) {
+        try {
+            String content = new String(Files.readAllBytes(file.toPath()));
+            int packageStart = content.indexOf("package ");
+            if (packageStart == -1) return "";
+
+            int packageEnd = content.indexOf(";", packageStart);
+            if (packageEnd == -1) return "";
+
+            return content.substring(packageStart + 8, packageEnd).trim();
+        } catch (IOException e) {
+            return "";
+        }
+    }
+
+    private void removeCompiledFiles(File directory) {
+        if (directory == null || !directory.isDirectory()) return;
+
+        File[] files = directory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile() && file.getName().endsWith(".java")) {
+                    String className = file.getName().replace(".java", "");
+                    String packageName = extractPackageNameFromFile(file);
+                    String fullClassName = packageName.isEmpty() ? className : packageName + "." + className;
+                    
+                    File classFile = new File("bin", fullClassName.replace('.', File.separatorChar) + ".class");
+                    if (classFile.exists()) {
+                        classFile.delete();
+                    }
+                } else if (file.isDirectory()) {
+                    removeCompiledFiles(file);
+                }
+            }
+        }
+    }
 }
