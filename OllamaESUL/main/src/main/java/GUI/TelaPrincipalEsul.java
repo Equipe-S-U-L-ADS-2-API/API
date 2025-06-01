@@ -23,6 +23,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JFrame;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.JButton;
@@ -48,6 +49,8 @@ import javax.swing.tree.TreePath;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
@@ -83,40 +86,14 @@ public class TelaPrincipalEsul extends javax.swing.JFrame implements ferramentas
         openFilesMap = new HashMap<>();
         configurarCaixaTexto();
         
-        // Initialize textAreaResultado
-        textAreaResultado = new RSyntaxTextArea();
-        textAreaResultado.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-        textAreaResultado.setCodeFoldingEnabled(true);
-        textAreaResultado.setAntiAliasingEnabled(true);
-        textAreaResultado.setFont(new java.awt.Font("Consolas", java.awt.Font.PLAIN, 14));
-        try {
-            InputStream in = getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml");
-            if (in != null) {
-                Theme theme = Theme.load(in);
-                theme.apply(textAreaResultado);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Initialize textAreaResultado com tema dark
+        textAreaResultado = createDarkRSyntaxTextArea();
         textAreaResultado.setLineWrap(true);
         textAreaResultado.setWrapStyleWord(true);
         scrollPaneResultado.setViewportView(textAreaResultado);
         
-        // Initialize textAreaCodigo
-        textAreaCodigo = new RSyntaxTextArea();
-        textAreaCodigo.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
-        textAreaCodigo.setCodeFoldingEnabled(true);
-        textAreaCodigo.setAntiAliasingEnabled(true);
-        textAreaCodigo.setFont(new java.awt.Font("Consolas", java.awt.Font.PLAIN, 14));
-        try {
-            InputStream in = getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml");
-            if (in != null) {
-                Theme theme = Theme.load(in);
-                theme.apply(textAreaCodigo);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // Initialize textAreaCodigo com tema dark
+        textAreaCodigo = createDarkRSyntaxTextArea();
         textAreaCodigo.setLineWrap(true);
         textAreaCodigo.setWrapStyleWord(true);
         scrollPaneCodigo.setViewportView(textAreaCodigo);
@@ -145,7 +122,10 @@ public class TelaPrincipalEsul extends javax.swing.JFrame implements ferramentas
                         String className = file.getName().replace(".java", "");
                         String packageName = extractPackageNameFromFile(file);
                         String fullClassName = packageName.isEmpty() ? className : packageName + "." + className;
-                        File classFile = new File("bin", fullClassName.replace('.', File.separatorChar) + ".class");
+                        String projectPath = System.getProperty("user.dir");
+                        Path targetDir = Paths.get(projectPath, "API", "OllamaESUL", "main", "target");
+                        Path binDir = targetDir.resolve("bin");
+                        File classFile = new File(binDir.toFile(), fullClassName.replace('.', File.separatorChar) + ".class");
                         if (classFile.exists()) {
                             classFile.delete();
                         }
@@ -263,9 +243,11 @@ public class TelaPrincipalEsul extends javax.swing.JFrame implements ferramentas
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
-                File binDir = new File("bin");
-                if (binDir.exists() && binDir.isDirectory()) {
-                    deleteDirectoryContents(binDir);
+                String projectPath = System.getProperty("user.dir");
+                Path targetDir = Paths.get(projectPath, "API", "OllamaESUL", "main", "target");
+                Path binDir = targetDir.resolve("bin");
+                if (Files.exists(binDir) && Files.isDirectory(binDir)) {
+                    deleteDirectoryContents(binDir.toFile());
                 }
             }
         });
@@ -288,101 +270,120 @@ public class TelaPrincipalEsul extends javax.swing.JFrame implements ferramentas
         textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
         textArea.setCodeFoldingEnabled(true);
         textArea.setAntiAliasingEnabled(true);
-        textArea.setFont(new java.awt.Font("Consolas", java.awt.Font.PLAIN, 18));
-        textArea.setBackground(new java.awt.Color(255, 255, 255));
-        textArea.setForeground(new java.awt.Color(0, 0, 0));
+        textArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        
         try {
+            // Carregar o tema default
             InputStream in = getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/default.xml");
-            if (in == null) {
-                System.err.println("Arquivo de tema não encontrado!");
-            } else {
+            if (in != null) {
                 Theme theme = Theme.load(in);
                 theme.apply(textArea);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // Se houver erro ao carregar o tema, usar configurações padrão
+            textArea.setBackground(Color.WHITE);
+            textArea.setForeground(Color.BLACK);
+            textArea.setCaretColor(Color.BLACK);
         }
-
+        
         return textArea;
     }
 
-private void addFileTab(File file, RSyntaxTextArea textArea) {
-    RTextScrollPane scrollPane = new RTextScrollPane(textArea);
-    
-    // Crie um painel para o título da aba e o botão de fechar
-    JPanel tabTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    tabTitlePanel.setOpaque(false); // Torna-o transparente
-    JLabel titleLabel = new JLabel(file.getName());
-    JButton closeButton = new JButton("x"); // Um pequeno 'x' para fechar
-    closeButton.setFont(closeButton.getFont().deriveFont(10f)); // Torna a fonte menor
-    closeButton.setMargin(new java.awt.Insets(0, 0, 0, 0)); // Remove a margem
-    closeButton.setContentAreaFilled(false); // Torna a área de conteúdo transparente
-    closeButton.setBorderPainted(false); // Sem borda
-    closeButton.setFocusPainted(false); // Sem borda de foco
-    closeButton.setForeground(new Color(255,211,54)); // Colore o 'x' de vermelho
-    
-
-    tabTitlePanel.add(titleLabel);
-    tabTitlePanel.add(closeButton);
-
-    // Adicione o scrollPane a um novo painel para conter o conteúdo da aba
-    JPanel tabContentPanel = new JPanel(new java.awt.BorderLayout());
-    tabContentPanel.add(scrollPane, java.awt.BorderLayout.CENTER);
-    
-    // Adicione a aba ao JTabbedPane (que agora é jPanel3)
-    jPanel3.addTab(null, tabContentPanel); // Adiciona com título nulo para usar componente de aba personalizado
-    int newTabIndex = jPanel3.indexOfComponent(tabContentPanel);
-    jPanel3.setTabComponentAt(newTabIndex, tabTitlePanel); // Define o componente de aba personalizado
-
-    jPanel3.setSelectedIndex(newTabIndex); // Seleciona a aba recém-criada
-    openFilesMap.put(file, textArea); // Adiciona ao mapa
-
-    // Adiciona um listener de ação para o botão de fechar
-    closeButton.addActionListener(e -> {
-        int index = jPanel3.indexOfComponent(tabContentPanel);
-        if (index != -1) {
-            jPanel3.removeTabAt(index);
-            openFilesMap.remove(file); // Remove do mapa quando a aba é fechada
+    private RSyntaxTextArea createDarkRSyntaxTextArea() {
+        RSyntaxTextArea textArea = new RSyntaxTextArea();
+        textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVA);
+        textArea.setCodeFoldingEnabled(true);
+        textArea.setAntiAliasingEnabled(true);
+        textArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        
+        try {
+            // Carregar o tema dark
+            InputStream in = getClass().getResourceAsStream("/org/fife/ui/rsyntaxtextarea/themes/dark.xml");
+            if (in != null) {
+                Theme theme = Theme.load(in);
+                theme.apply(textArea);
+            }
+        } catch (Exception e) {
+            // Se houver erro ao carregar o tema, usar configurações padrão dark
+            textArea.setBackground(new Color(43, 43, 43));
+            textArea.setForeground(Color.WHITE);
+            textArea.setCaretColor(Color.WHITE);
         }
-    });
-}
-       
-private void configurarCaixaTexto() {
-    // painelCodigo já é jPanel3, que já é um JTabbedPane
-    // Então, as configurações de layout para painelCodigo não são mais necessárias aqui,
-    // pois o JTabbedPane já gerencia suas abas.
-    
-    // Configurações visuais do JTabbedPane (jPanel3)
-    jPanel3.setBackground(new java.awt.Color(42, 45, 44)); // Exemplo de cor de fundo para as abas
-    jPanel3.setForeground(new java.awt.Color(255, 211, 94)); // Exemplo de cor de primeiro plano para as abas
+        
+        return textArea;
+    }
 
-    // Adicione uma aba inicial vazia ou de "Boas-vindas"
-    RSyntaxTextArea initialTextArea = createNewRSyntaxTextArea();
-    initialTextArea.setText("\n\n// Seu código aqui //\n                              ");
-    // Usamos um objeto File dummy para a aba inicial, pois ela não representa um arquivo salvo.
-    addFileTab(new File("Novo Arquivo.java"), initialTextArea); 
-}
-private RSyntaxTextArea getSelectedTextArea() {
-    int selectedIndex = jPanel3.getSelectedIndex();
-    if (selectedIndex == -1) {
-        return null; // Nenhuma aba selecionada
+    private void configurarCaixaTexto() {
+        // Configurações visuais do JTabbedPane (jPanel3)
+        jPanel3.setBackground(new java.awt.Color(42, 45, 44));
+        jPanel3.setForeground(new java.awt.Color(255, 211, 94));
+
+        // Adicione uma aba inicial vazia ou de "Boas-vindas"
+        RSyntaxTextArea initialTextArea = createNewRSyntaxTextArea();
+        initialTextArea.setText("\n\n// Seu código aqui //\n                              ");
+        addFileTab(new File("Novo Arquivo.java"), initialTextArea);
     }
-    JPanel tabContentPanel = (JPanel) jPanel3.getComponentAt(selectedIndex);
-    RTextScrollPane scrollPane = (RTextScrollPane) tabContentPanel.getComponent(0); // Assume que o RTextScrollPane é o primeiro componente
-    return (RSyntaxTextArea) scrollPane.getViewport().getView();
-}
-private File getSelectedFile() {
-    RSyntaxTextArea currentTextArea = getSelectedTextArea();
-    if (currentTextArea == null) {
-        return null;
+
+    private void addFileTab(File file, RSyntaxTextArea textArea) {
+        RTextScrollPane scrollPane = new RTextScrollPane(textArea);
+        
+        // Crie um painel para o título da aba e o botão de fechar
+        JPanel tabTitlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        tabTitlePanel.setOpaque(false);
+        JLabel titleLabel = new JLabel(file.getName());
+        JButton closeButton = new JButton("x");
+        closeButton.setFont(closeButton.getFont().deriveFont(10f));
+        closeButton.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        closeButton.setContentAreaFilled(false);
+        closeButton.setBorderPainted(false);
+        closeButton.setFocusPainted(false);
+        closeButton.setForeground(new Color(255,211,54));
+
+        tabTitlePanel.add(titleLabel);
+        tabTitlePanel.add(closeButton);
+
+        JPanel tabContentPanel = new JPanel(new java.awt.BorderLayout());
+        tabContentPanel.add(scrollPane, java.awt.BorderLayout.CENTER);
+        
+        jPanel3.addTab(null, tabContentPanel);
+        int newTabIndex = jPanel3.indexOfComponent(tabContentPanel);
+        jPanel3.setTabComponentAt(newTabIndex, tabTitlePanel);
+
+        jPanel3.setSelectedIndex(newTabIndex);
+        openFilesMap.put(file, textArea);
+
+        closeButton.addActionListener(e -> {
+            int index = jPanel3.indexOfComponent(tabContentPanel);
+            if (index != -1) {
+                jPanel3.removeTabAt(index);
+                openFilesMap.remove(file);
+            }
+        });
     }
-    for (Map.Entry<File, RSyntaxTextArea> entry : openFilesMap.entrySet()) {
-        if (entry.getValue() == currentTextArea) {
-            return entry.getKey();
+
+    private RSyntaxTextArea getSelectedTextArea() {
+        int selectedIndex = jPanel3.getSelectedIndex();
+        if (selectedIndex == -1) {
+            return null; // Nenhuma aba selecionada
         }
+        JPanel tabContentPanel = (JPanel) jPanel3.getComponentAt(selectedIndex);
+        RTextScrollPane scrollPane = (RTextScrollPane) tabContentPanel.getComponent(0); // Assume que o RTextScrollPane é o primeiro componente
+        return (RSyntaxTextArea) scrollPane.getViewport().getView();
     }
-    return null; // Retorna null se não encontrar o arquivo associado (ex: aba "Novo Arquivo")
-}
+
+    private File getSelectedFile() {
+        RSyntaxTextArea currentTextArea = getSelectedTextArea();
+        if (currentTextArea == null) {
+            return null;
+        }
+        for (Map.Entry<File, RSyntaxTextArea> entry : openFilesMap.entrySet()) {
+            if (entry.getValue() == currentTextArea) {
+                return entry.getKey();
+            }
+        }
+        return null; // Retorna null se não encontrar o arquivo associado (ex: aba "Novo Arquivo")
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -883,6 +884,16 @@ private File getSelectedFile() {
 
     private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
         panelResultado.setVisible(true);
+        // Esconder área de código e botão copiar
+        scrollPaneCodigo.setVisible(false);
+        btnCopiar.setVisible(false);
+        
+        // Ajustar layout da área de resultado
+        scrollPaneResultado.setPreferredSize(new java.awt.Dimension(512, 763)); // Dobrar a largura
+        
+        // Adicionar padding ao painel de resultado
+        panelResultado.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 5, 0));
+        
         RSyntaxTextArea currentTextArea = getSelectedTextArea();
         if (currentTextArea == null) {
             JOptionPane.showMessageDialog(this, "Nenhuma aba de código está aberta para gerar testes.");
@@ -911,6 +922,16 @@ private File getSelectedFile() {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         panelResultado.setVisible(true);
+        // Mostrar área de código e botão copiar
+        scrollPaneCodigo.setVisible(true);
+        btnCopiar.setVisible(true);
+        
+        // Restaurar tamanho original da área de resultado
+        scrollPaneResultado.setPreferredSize(new java.awt.Dimension(256, 763));
+        
+        // Remover padding do painel de resultado
+        panelResultado.setBorder(null);
+        
         // Obtém a área de texto atual
         RSyntaxTextArea currentTextArea = getSelectedTextArea();
         if (currentTextArea == null) {
@@ -1242,9 +1263,13 @@ JFileChooser fileChooser = new JFileChooser();
     }//GEN-LAST:event_jButton11ActionPerformed
 
     private void btnFecharResultadoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFecharResultadoActionPerformed
-        // TODO add your handling code here:
-        // Botão Fechar Terminal
         panelResultado.setVisible(false);
+        // Restaurar visibilidade e tamanhos ao fechar
+        scrollPaneCodigo.setVisible(true);
+        btnCopiar.setVisible(true);
+        scrollPaneResultado.setPreferredSize(new java.awt.Dimension(256, 763));
+        // Remover padding do painel de resultado
+        panelResultado.setBorder(null);
     }//GEN-LAST:event_btnFecharResultadoActionPerformed
 
     private void btnCopiarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCopiarActionPerformed
@@ -1487,7 +1512,10 @@ private DefaultMutableTreeNode findNode(DefaultMutableTreeNode root, File target
                     String packageName = extractPackageNameFromFile(file);
                     String fullClassName = packageName.isEmpty() ? className : packageName + "." + className;
                     
-                    File classFile = new File("bin", fullClassName.replace('.', File.separatorChar) + ".class");
+                    String projectPath = System.getProperty("user.dir");
+                    Path targetDir = Paths.get(projectPath, "API", "OllamaESUL", "main", "target");
+                    Path binDir = targetDir.resolve("bin");
+                    File classFile = new File(binDir.toFile(), fullClassName.replace('.', File.separatorChar) + ".class");
                     if (classFile.exists()) {
                         classFile.delete();
                     }

@@ -83,6 +83,56 @@ public class MelhoradorDeCodigo {
     }
 
     private String gerarPromptSelecao(String codigo) {
+        // Verifica se é um teste JUnit
+        if (codigo.contains("@Test") || codigo.contains("assert")) {
+            return """
+            You are an expert in Java testing and JUnit.
+            Your task:
+            1. Read the selected JUnit test code provided.
+            2. Analyze and fix the test case by:
+            - Identifying incorrect assertions or expectations
+            - Ensuring test logic matches the actual behavior of the code being tested
+            - Maintaining test coverage and edge cases
+            - Keeping the original test structure and naming
+            - If a test expects an exception but the operation is valid, change it to verify the correct result instead
+            - If a test expects a result but the operation should throw an exception, change it to expect the correct exception
+
+            Common test scenarios to consider:
+            - Mathematical operations should follow standard mathematical rules
+            - String operations should handle null, empty, and special characters correctly
+            - Collection operations should handle empty, null, and boundary cases
+            - Object operations should verify correct state changes and relationships
+            - Exception handling should verify correct exception types and messages
+            - Edge cases should be properly tested with boundary values
+            - State changes should be verified before and after operations
+
+            Answer format:
+            - What was wrong: [describe the issue in the test]
+            - Why it was wrong: [explain why the test was incorrect]
+            - How it was fixed: [explain the correction made]
+            - Code with the changes:
+            ```java
+            [your corrected test code here]
+            ```
+
+            Rules:
+            - Be clear and direct.
+            - Translate the entire output to Brazilian Portuguese, only Brazilian Portuguese.
+            - Summarize the information objectively.
+            - Do not add extra explanations beyond what was requested.
+            - Focus only on the selected test code.
+            - Always wrap the code in ```java and ``` markers.
+            - Do not change test method names.
+            - Do not duplicate tests.
+            - If the test expects an exception but the operation is valid, change it to verify the correct result.
+            - If the test expects a result but the operation should throw an exception, change it to expect the correct exception.
+            - Use appropriate assertions (assertEquals, assertThrows, etc.) based on what is being tested.
+            - Consider the domain rules and expected behavior of the code being tested.
+            - Ensure assertions match the actual behavior of the code.
+            """ + codigo;
+        }
+
+        // Prompt original para código não-teste
         return """
         You are an expert in Java and object orientation.
         Your task:

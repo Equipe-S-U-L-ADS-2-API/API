@@ -26,12 +26,19 @@ public class ProjectCompiler {
     public ProjectCompiler(JTree jTreeArquivos, JTextArea outputArea) {
         this.jTreeArquivos = jTreeArquivos;
         this.outputArea = outputArea;
-        this.outputDir = new File("bin");
-        this.closedFiles = new HashSet<>();
         
-        if (!outputDir.exists()) {
-            outputDir.mkdir();
+        // Usar a pasta target do Maven usando caminho relativo
+        String projectPath = System.getProperty("user.dir");
+        Path targetDir = Paths.get(projectPath, "API", "OllamaESUL", "main", "target");
+        Path binDir = targetDir.resolve("bin");
+        try {
+            Files.createDirectories(binDir);
+        } catch (IOException e) {
+            outputArea.append("Erro ao criar diretório bin: " + e.getMessage() + "\n");
         }
+        this.outputDir = binDir.toFile();
+        
+        this.closedFiles = new HashSet<>();
     }
 
     public void executarProjeto() {
@@ -43,20 +50,12 @@ public class ProjectCompiler {
                 return;
             }
 
-            outputArea.append("Arquivos .java encontrados na JTree:\n");
-            for (File file : javaFiles) {
-                outputArea.append("- " + file.getAbsolutePath() + "\n");
-            }
-
             // 2. Compilar os arquivos
             boolean compilationSuccess = compileFiles(javaFiles);
             if (!compilationSuccess) {
                 outputArea.append("Compilação falhou. Verifique os erros acima.\n");
                 return;
             }
-
-            outputArea.append("\nArquivos compilados em " + outputDir.getAbsolutePath() + ":\n");
-            listCompiledFiles(outputDir, "");
 
             // 3. Encontrar e executar a classe principal
             String mainClassName = findMainClass(javaFiles);
@@ -87,8 +86,6 @@ public class ProjectCompiler {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
                 writer.write(codeContent);
             }
-
-            outputArea.append("Compilando código do arquivo temporário: " + tempFile.getAbsolutePath() + "\n");
 
             // Coletar arquivos para compilação
             List<File> filesToCompile = new ArrayList<>();
@@ -121,11 +118,6 @@ public class ProjectCompiler {
 
             // Adicionar o arquivo temporário
             filesToCompile.add(tempFile);
-
-            outputArea.append("Arquivos a serem compilados:\n");
-            for (File file : filesToCompile) {
-                outputArea.append("- " + file.getAbsolutePath() + "\n");
-            }
 
             // Compilar os arquivos
             boolean compilationSuccess = compileFiles(filesToCompile);
@@ -304,20 +296,49 @@ public class ProjectCompiler {
             Set<File> sourcePaths = new HashSet<>();
             for (File file : javaFiles) {
                 if (file.getParentFile() != null) {
-                    sourcePaths.add(file.getParentFile());
+                    // Adiciona apenas o diretório mais específico (mais profundo)
+                    File parent = file.getParentFile();
+                    boolean isRedundant = false;
+                    // Verifica se este diretório é pai de algum outro já adicionado
+                    for (File existingPath : new HashSet<>(sourcePaths)) {
+                        if (existingPath.getAbsolutePath().startsWith(parent.getAbsolutePath())) {
+                            // Se o diretório existente é filho do novo, remove o existente
+                            sourcePaths.remove(existingPath);
+                        } else if (parent.getAbsolutePath().startsWith(existingPath.getAbsolutePath())) {
+                            // Se o novo diretório é filho do existente, não adiciona
+                            isRedundant = true;
+                            break;
+                        }
+                    }
+                    if (!isRedundant) {
+                        sourcePaths.add(parent);
+                    }
                 }
                 String packageName = extractPackageNameFromFileContent(file);
                 if (!packageName.isEmpty()) {
                     File packageRoot = getPackageRoot(file, packageName);
                     if (packageRoot != null) {
-                        sourcePaths.add(packageRoot);
+                        // Verifica se o packageRoot não é redundante
+                        boolean isPackageRootRedundant = false;
+                        for (File existingPath : new HashSet<>(sourcePaths)) {
+                            if (packageRoot.getAbsolutePath().startsWith(existingPath.getAbsolutePath())) {
+                                isPackageRootRedundant = true;
+                                break;
+                            } else if (existingPath.getAbsolutePath().startsWith(packageRoot.getAbsolutePath())) {
+                                // Se o packageRoot é pai de um diretório existente, remove o existente
+                                sourcePaths.remove(existingPath);
+                            }
+                        }
+                        if (!isPackageRootRedundant) {
+                            sourcePaths.add(packageRoot);
+                        }
                     }
                 }
             }
-            sourcePaths.add(outputDir); 
 
             // Build classpath string
             StringBuilder classpath = new StringBuilder();
+            // Adiciona o diretório de saída apenas uma vez
             classpath.append(outputDir.getAbsolutePath());
 
             // Add source paths to classpath
@@ -372,17 +393,16 @@ public class ProjectCompiler {
                         // Adicionar todos os JARs do diretório lib ao classpath
                         File[] jars = ideLibDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".jar"));
                         if (jars != null && jars.length > 0) {
-                            for (File jar : jars) {
-                                classpath.append(File.pathSeparator).append(jar.getAbsolutePath());
-                            }
-                            outputArea.append("Adicionando dependências da pasta lib da IDE ao classpath\n");
+                            // Criar um Set para evitar duplicatas
+                            Set<String> addedJars = new HashSet<>();
                             
-                            // Mostrar os JARs adicionados
-                            outputArea.append("\nJARs da pasta lib adicionados:\n");
                             for (File jar : jars) {
-                                outputArea.append("- " + jar.getName() + "\n");
+                                String jarPath = jar.getAbsolutePath();
+                                if (!addedJars.contains(jarPath)) {
+                                    classpath.append(File.pathSeparator).append(jarPath);
+                                    addedJars.add(jarPath);
+                                }
                             }
-                            outputArea.append("\n");
                         } else {
                             outputArea.append("ERRO: Nenhum JAR encontrado na pasta lib: " + ideLibDir.getAbsolutePath() + "\n");
                         }
@@ -393,8 +413,10 @@ public class ProjectCompiler {
                         // Fallback: usar o classpath do sistema
                         String systemClasspath = System.getProperty("java.class.path");
                         if (systemClasspath != null && !systemClasspath.isEmpty()) {
-                            classpath.append(File.pathSeparator).append(systemClasspath);
-                            outputArea.append("Usando classpath do sistema\n");
+                            // Adicionar apenas se não estiver já no classpath
+                            if (!classpath.toString().contains(systemClasspath)) {
+                                classpath.append(File.pathSeparator).append(systemClasspath);
+                            }
                         }
                     }
                 } catch (Exception e) {
@@ -405,14 +427,6 @@ public class ProjectCompiler {
             // Add classpath to options
             options.add("-classpath");
             options.add(classpath.toString());
-
-            // Mostrar o classpath final usado na compilação
-            outputArea.append("\nClasspath final usado na compilação:\n");
-            String[] finalClasspath = classpath.toString().split(File.pathSeparator);
-            for (String entry : finalClasspath) {
-                outputArea.append("- " + entry + "\n");
-            }
-            outputArea.append("\n");
 
             Iterable<? extends JavaFileObject> compilationUnits =
                 fileManager.getJavaFileObjectsFromFiles(javaFiles);

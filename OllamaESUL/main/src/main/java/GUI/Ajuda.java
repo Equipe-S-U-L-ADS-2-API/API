@@ -7,7 +7,10 @@ package GUI;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.logging.Level;
@@ -197,27 +200,48 @@ public class Ajuda extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void btnPDFActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPDFActionPerformed
-        try {
-            // Caminho para o recurso dentro do projeto
-            URI uri = getClass().getResource("/PDF/PDFESUL.pdf").toURI();
-            File pdfFile = new File(uri);
-            
-            if (pdfFile.exists()) {
-                // Abre o PDF no programa padrão do sistema
-                this.setState(JFrame.ICONIFIED);
-                Desktop.getDesktop().open(pdfFile); 
-                
-                
-            } else {
-                System.out.println("Arquivo PDF não encontrado.");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException ex) {
-            Logger.getLogger(Ajuda.class.getName()).log(Level.SEVERE, null, ex);
-        }
- 
+        abrirPDF();
     }//GEN-LAST:event_btnPDFActionPerformed
+
+    private void abrirPDF() {
+        try {
+            InputStream is = getClass().getResourceAsStream("/PDF/PDFESUL.pdf");
+            if (is != null) {
+                // Criar arquivo temporário
+                File tempFile = File.createTempFile("PDFESUL", ".pdf");
+                tempFile.deleteOnExit();
+                
+                // Copiar conteúdo do InputStream para o arquivo temporário
+                try (FileOutputStream fos = new FileOutputStream(tempFile)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        fos.write(buffer, 0, bytesRead);
+                    }
+                }
+                
+                // Abrir o PDF
+                if (Desktop.isDesktopSupported()) {
+                    Desktop.getDesktop().open(tempFile);
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Não foi possível abrir o PDF. Seu sistema não suporta esta operação.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, 
+                    "Arquivo PDF não encontrado.",
+                    "Erro",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Erro ao abrir o PDF: " + e.getMessage(),
+                "Erro",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
 
     /**
      * @param args the command line arguments

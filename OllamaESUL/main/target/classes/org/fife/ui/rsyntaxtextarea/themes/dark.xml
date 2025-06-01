@@ -14,7 +14,7 @@
    <background color="3E4244"/>     <!-- fundo escuro -->
    <caret color="FF5555"/>          <!-- vermelho mais suave no dark -->
    <selection fg="default" useFG="false" bg="555555"/>  <!-- seleção cinza escuro -->
-   <currentLineHighlight color="4E4530" fade="false"/>  <!-- destaque de linha atual -->
+   <currentLineHighlight color="3E4244" fade="false"/>  <!-- destaque de linha atual -->
    <marginLine fg="555555"/>        <!-- linha de margem escura -->
    <markAllHighlight color="666600"/> 
    <markOccurrencesHighlight color="666666" border="false"/>
